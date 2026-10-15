@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Model Burung Hantu Veterna - Interactive Viewer</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        veterna: {
+                            DEFAULT: '#233686',
+                            dark: '#1a2862',
+                            light: '#324bb8',
+                            accent: '#38bdf8',
+                            soft: '#eef2ff'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- html2canvas untuk Fitur Screenshot -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        /* Glassmorphism styling */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-header {
+            background: rgba(35, 54, 134, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #233686;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #38bdf8;
+        }
+
+        /* Pulse glowing effect */
+        .glow-effect {
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.25);
+        }
+
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-veterna-accent selection:text-slate-900">
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 ease-out flex items-center gap-3 bg-slate-800 text-white px-5 py-3.5 rounded-xl shadow-2xl border border-veterna-accent/30">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-green-400 text-xl"></i>
+        <span id="toast-message" class="text-sm font-medium">Notifikasi</span>
+    </div>
+
+    <!-- HEADER / NAVBAR -->
+    <header class="sticky top-0 z-40 glass-header text-white transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            
+            <!-- Logo & Brand Title -->
+            <a href="#" class="flex items-center gap-3 group">
+                <div class="p-1.5 rounded-xl bg-white/10 group-hover:bg-white/20 transition-all duration-300">
+                    <img src="https://github.com/virtueterna28/web/blob/main/mentahan%20aset%20web/logo%20veterna%20(1).png?raw=true" 
+                         alt="Logo Veterna" 
+                         class="h-10 w-auto object-contain transform group-hover:scale-105 transition-transform"
+                         onerror="this.src='https://placehold.co/100x100/233686/fff?text=VETERNA'">
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-lg sm:text-xl tracking-tight leading-none text-white group-hover:text-veterna-accent transition-colors">VETERNA</h1>
+                    <span class="text-xs text-blue-200 font-light tracking-wider uppercase">3D Owls Interactive</span>
+                </div>
+            </a>
+
+            <!-- Desktop Navigation -->
+            <nav class="hidden md:flex items-center gap-8 text-sm font-medium">
+                <a href="#viewer-section" class="text-blue-100 hover:text-white transition-colors hover:scale-105 transform">Viewer 3D</a>
+                <a href="#controls-guide" class="text-blue-100 hover:text-white transition-colors hover:scale-105 transform">Panduan Kontrol</a>
+                <a href="#info-section" class="text-blue-100 hover:text-white transition-colors hover:scale-105 transform">Detail Model</a>
+                <a href="#social-section" class="text-blue-100 hover:text-white transition-colors hover:scale-105 transform">Komunitas</a>
+            </nav>
+
+            <!-- CTA Button -->
+            <div class="flex items-center gap-3">
+                <button onclick="openContactModal()" class="relative inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold text-white transition-all duration-300 bg-gradient-to-r from-blue-600 to-veterna hover:from-veterna-light hover:to-blue-600 rounded-xl shadow-lg hover:shadow-veterna/50 hover:-translate-y-0.5 active:translate-y-0">
+                    <i class="fa-solid fa-paper-plane mr-2 text-xs"></i>
+                    Hubungi Kami
+                </button>
+                
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="md:hidden p-2 rounded-lg bg-white/10 text-white hover:bg-white/20 transition">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-slate-900/95 border-b border-white/10 px-4 py-4 space-y-3 text-sm">
+            <a href="#viewer-section" onclick="toggleMobileMenu()" class="block py-2 text-slate-200 hover:text-white">Viewer 3D</a>
+            <a href="#controls-guide" onclick="toggleMobileMenu()" class="block py-2 text-slate-200 hover:text-white">Panduan Kontrol</a>
+            <a href="#info-section" onclick="toggleMobileMenu()" class="block py-2 text-slate-200 hover:text-white">Detail Model</a>
+            <a href="#social-section" onclick="toggleMobileMenu()" class="block py-2 text-slate-200 hover:text-white">Komunitas</a>
+        </div>
+    </header>
+
+    <!-- HERO / TITLE SECTION -->
+    <section class="relative pt-12 pb-6 px-4 text-center max-w-4xl mx-auto">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-veterna/30 border border-veterna-accent/30 text-veterna-accent text-xs font-semibold uppercase tracking-widest mb-4">
+            <span class="w-2 h-2 rounded-full bg-veterna-accent animate-ping"></span>
+            Eksplorasi Objek 3D Angkatan
+        </div>
+        <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-4 leading-tight">
+            3D Model <span class="bg-gradient-to-r from-blue-400 via-sky-300 to-indigo-300 bg-clip-text text-transparent">Burung Hantu Veterna</span>
+        </h2>
+        <p class="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto font-normal leading-relaxed">
+            Visualisasi 3D modern, presisi, dan elegan dari lambang kebanggaan Angkatan Veterna. Putar, perbesar, dan amati setiap detail dari berbagai sudut secara penuh.
+        </p>
+    </section>
+
+    <!-- MAIN VIEWER SECTION -->
+    <main id="viewer-section" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
+        <div id="capture-container" class="glass-panel rounded-2xl p-2 sm:p-4 shadow-2xl relative overflow-hidden transition-all duration-300 glow-effect border border-slate-700">
+            
+            <!-- Viewer Frame Container -->
+            <div class="relative w-full h-[500px] sm:h-[620px] rounded-xl overflow-hidden bg-slate-950 border border-slate-800">
+                <!-- Autodesk blocks this shared viewer from being embedded in some browsers. -->
+                <div class="w-full h-full flex flex-col items-center justify-center text-center px-6 bg-slate-950">
+                    <div class="w-16 h-16 rounded-2xl bg-veterna/30 border border-veterna-accent/30 flex items-center justify-center text-veterna-accent text-2xl mb-5">
+                        <i class="fa-solid fa-cube"></i>
+                    </div>
+                    <h3 class="text-lg sm:text-xl font-bold text-white mb-2">Viewer 3D dibuka melalui Autodesk</h3>
+                    <p class="max-w-md text-sm text-slate-400 mb-6">
+                        Autodesk membatasi tampilan viewer ini di dalam halaman lain. Buka viewer langsung di tab baru untuk berinteraksi dengan model.
+                    </p>
+                    <a href="https://autode.sk/4jjQkQk" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-veterna to-blue-600 hover:from-blue-600 hover:to-veterna text-white text-sm font-semibold shadow-lg transition-all">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        Buka Viewer Autodesk
+                    </a>
+                </div>
+                
+                <!-- Watermark Badge -->
+                <div class="absolute top-4 left-4 pointer-events-none z-10 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 flex items-center gap-2 text-xs text-slate-300">
+                    <img src="https://github.com/virtueterna28/web/blob/main/mentahan%20aset%20web/logo%20veterna%20(1).png?raw=true" alt="Veterna" class="h-4 w-auto">
+                    <span>Veterna 3D Engine</span>
+                </div>
+            </div>
+
+            <!-- ACTION TOOLBAR -->
+            <div class="mt-4 flex flex-wrap items-center justify-between gap-3 bg-slate-900/90 p-3 sm:p-4 rounded-xl border border-slate-800">
+                <div class="flex items-center gap-2 text-xs text-slate-400">
+                    <i class="fa-solid fa-cube text-veterna-accent"></i>
+                    <span>Autodesk CAD Interactive Viewer</span>
+                </div>
+
+                <!-- Interactive Action Buttons -->
+                <div class="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                    <!-- Download Button -->
+                    <button onclick="openDownloadModal()" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs sm:text-sm font-medium border border-slate-700 hover:border-slate-500 transition-all duration-200">
+                        <i class="fa-solid fa-download text-veterna-accent"></i>
+                        <span>Download</span>
+                    </button>
+
+                    <!-- Share Button -->
+                    <button onclick="openShareModal()" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs sm:text-sm font-medium border border-slate-700 hover:border-slate-500 transition-all duration-200">
+                        <i class="fa-solid fa-share-nodes text-green-400"></i>
+                        <span>Bagikan</span>
+                    </button>
+
+                    <!-- Screenshot Button -->
+                    <button onclick="takeScreenshot()" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-veterna to-blue-600 hover:from-blue-600 hover:to-veterna text-white text-xs sm:text-sm font-medium shadow-md transition-all duration-200">
+                        <i class="fa-solid fa-camera text-yellow-300"></i>
+                        <span>Screenshot</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- PANDUAN KONTROL & SPESIFIKASI -->
+    <section id="controls-guide" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div class="text-center mb-8">
+            <h3 class="text-xl sm:text-2xl font-bold text-white mb-2">Panduan Interaksi 3D Viewer</h3>
+            <p class="text-slate-400 text-xs sm:text-sm">Gunakan gesture mouse atau sentuhan tangan untuk mengontrol objek 3D</p>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <!-- Control Item 1 -->
+            <div class="glass-panel p-4 rounded-xl text-center hover:border-veterna-accent/50 transition-all">
+                <div class="w-10 h-10 mx-auto mb-3 rounded-full bg-veterna/30 flex items-center justify-center text-veterna-accent text-lg">
+                    <i class="fa-solid fa-rotate"></i>
+                </div>
+                <h4 class="text-sm font-semibold text-white mb-1">Rotasi Bebas</h4>
+                <p class="text-xs text-slate-400">Klik Kiri & Drag (Atas, Bawah, Kiri, Kanan, Samping)</p>
+            </div>
+
+            <!-- Control Item 2 -->
+            <div class="glass-panel p-4 rounded-xl text-center hover:border-veterna-accent/50 transition-all">
+                <div class="w-10 h-10 mx-auto mb-3 rounded-full bg-veterna/30 flex items-center justify-center text-veterna-accent text-lg">
+                    <i class="fa-solid fa-hand"></i>
+                </div>
+                <h4 class="text-sm font-semibold text-white mb-1">Pan / Geser</h4>
+                <p class="text-xs text-slate-400">Klik Kanan / Shift + Klik Kiri & Drag posisi</p>
+            </div>
+
+            <!-- Control Item 3 -->
+            <div class="glass-panel p-4 rounded-xl text-center hover:border-veterna-accent/50 transition-all">
+                <div class="w-10 h-10 mx-auto mb-3 rounded-full bg-veterna/30 flex items-center justify-center text-veterna-accent text-lg">
+                    <i class="fa-solid fa-magnifying-glass-plus"></i>
+                </div>
+                <h4 class="text-sm font-semibold text-white mb-1">Zoom In / Out</h4>
+                <p class="text-xs text-slate-400">Scroll Wheel Mouse / Pinch 2 Jari di HP</p>
+            </div>
+
+            <!-- Control Item 4 -->
+            <div class="glass-panel p-4 rounded-xl text-center hover:border-veterna-accent/50 transition-all">
+                <div class="w-10 h-10 mx-auto mb-3 rounded-full bg-veterna/30 flex items-center justify-center text-veterna-accent text-lg">
+                    <i class="fa-solid fa-expand"></i>
+                </div>
+                <h4 class="text-sm font-semibold text-white mb-1">Fullscreen</h4>
+                <p class="text-xs text-slate-400">Gunakan tombol ekspansi di dalam toolbar Autodesk</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- INFORMATION SECTION (TABBED / CARDS) -->
+    <section id="info-section" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Left Info Card: About -->
+            <div class="lg:col-span-2 glass-panel rounded-2xl p-6 sm:p-8 relative">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="p-3 bg-veterna/40 rounded-xl border border-veterna-accent/30 text-veterna-accent">
+                        <i class="fa-solid fa-feather-pointed text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white">Filosofi & Deskripsi Model</h3>
+                        <p class="text-xs text-slate-400">Maskot Burung Hantu Angkatan Veterna</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4 text-slate-300 text-sm leading-relaxed">
+                    <p>
+                        Model 3D **Burung Hantu Veterna** merepresentasikan ketajaman visi, kebijaksanaan, dan keberanian angkatan **Veterna (Biru Tua)**. Dirancang dengan detail estetis yang bersih, tegas, dan berjiwa muda.
+                    </p>
+                    <p>
+                        Dengan palet warna biru tua khas angkatan (`#233686`), model ini dikembangkan untuk memberikan bentuk visual tiga dimensi yang dapat dipelajari, direview, serta dijadikan acuan visual identitas angkatan.
+                    </p>
+                </div>
+
+                <!-- Features Highlights -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 pt-6 border-t border-slate-700/60">
+                    <div class="flex items-start gap-3">
+                        <i class="fa-solid fa-shield-halved text-veterna-accent mt-1"></i>
+                        <div>
+                            <h5 class="text-xs font-semibold text-white">Identitas Biru Tua</h5>
+                            <p class="text-xs text-slate-400">Mengusung karakter warna elegan `#233686` Veterna.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <i class="fa-solid fa-cubes text-veterna-accent mt-1"></i>
+                        <div>
+                            <h5 class="text-xs font-semibold text-white">High Detail Geometry</h5>
+                            <p class="text-xs text-slate-400">Optimasi jaring poly untuk rendering cepat & fleksibel.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Info Card: Technical Metadata -->
+            <div class="glass-panel rounded-2xl p-6 sm:p-8 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info text-veterna-accent"></i>
+                        Spesifikasi Teknis
+                    </h3>
+
+                    <ul class="space-y-3.5 text-xs text-slate-300">
+                        <li class="flex justify-between py-2 border-b border-slate-700/50">
+                            <span class="text-slate-400">Nama Objek:</span>
+                            <span class="font-semibold text-white">Owl Veterna 3D</span>
+                        </li>
+                        <li class="flex justify-between py-2 border-b border-slate-700/50">
+                            <span class="text-slate-400">Platform Viewer:</span>
+                            <span class="font-semibold text-white">Autodesk Cloud Engine</span>
+                        </li>
+                        <li class="flex justify-between py-2 border-b border-slate-700/50">
+                            <span class="text-slate-400">Navigasi:</span>
+                            <span class="font-semibold text-white">360° Free Orbit</span>
+                        </li>
+                        <li class="flex justify-between py-2 border-b border-slate-700/50">
+                            <span class="text-slate-400">Tema Warna:</span>
+                            <span class="font-semibold text-veterna-accent">Biru Tua Veterna (#233686)</span>
+                        </li>
+                        <li class="flex justify-between py-2 border-b border-slate-700/50">
+                            <span class="text-slate-400">Kompatibilitas:</span>
+                            <span class="font-semibold text-green-400">Mobile, Tablet, Desktop</span>
+                        </li>
+                        <li class="flex justify-between py-2">
+                            <span class="text-slate-400">Lisensi & Hak Cipta:</span>
+                            <span class="font-semibold text-white">Angkatan Veterna</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="mt-6 p-4 rounded-xl bg-veterna/20 border border-veterna/40 text-center">
+                    <p class="text-xs text-blue-200">Membutuhkan akses aset mentah CAD/3D?</p>
+                    <button onclick="openContactModal()" class="mt-2 text-xs font-semibold text-veterna-accent hover:underline">
+                        Ajukan Permintaan File &rarr;
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- SOCIAL MEDIA & COMMUNITY SECTION -->
+    <section id="social-section" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
+        <div class="glass-panel rounded-3xl p-8 sm:p-12 relative overflow-hidden border border-slate-700">
+            <div class="max-w-2xl mx-auto space-y-4">
+                <h3 class="text-2xl sm:text-3xl font-extrabold text-white">Ikuti Media Sosial Kami</h3>
+                <p class="text-slate-400 text-xs sm:text-sm">
+                    Dapatkan pembaruan karya terbaru, informasi angkatan, serta kegiatan seru lainnya dari SMA Ar-Rohmah Putra Malang.
+                </p>
+
+                <!-- Social Icons Grid with Custom Logos -->
+                <div class="flex flex-wrap items-center justify-center gap-6 pt-6">
+                    
+                    <!-- Instagram -->
+                    <a href="https://www.instagram.com/veterna28/" target="_blank" rel="noopener noreferrer" 
+                       class="group flex flex-col items-center gap-2 p-4 rounded-2xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 hover:border-pink-500/50 transition-all duration-300 transform hover:-translate-y-1 w-28">
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-slate-900 group-hover:scale-110 transition-transform">
+                            <img src="https://i.ibb.co.com/SXfnj442/ig.png" alt="Instagram" class="w-7 h-7 object-contain"
+                                 onerror="this.src='https://placehold.co/50x50/e1306c/fff?text=IG'">
+                        </div>
+                        <span class="text-xs font-semibold text-slate-200 group-hover:text-pink-400">Instagram</span>
+                    </a>
+
+                    <!-- TikTok -->
+                    <a href="https://www.tiktok.com/@smaarrohmahputra" target="_blank" rel="noopener noreferrer" 
+                       class="group flex flex-col items-center gap-2 p-4 rounded-2xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 hover:border-cyan-400/50 transition-all duration-300 transform hover:-translate-y-1 w-28">
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-slate-900 group-hover:scale-110 transition-transform">
+                            <img src="https://i.ibb.co.com/rRsMT240/tiktok.png" alt="TikTok" class="w-7 h-7 object-contain"
+                                 onerror="this.src='https://placehold.co/50x50/000/fff?text=TT'">
+                        </div>
+                        <span class="text-xs font-semibold text-slate-200 group-hover:text-cyan-400">TikTok</span>
+                    </a>
+
+                    <!-- YouTube -->
+                    <a href="https://www.youtube.com/@smaartramalang" target="_blank" rel="noopener noreferrer" 
+                       class="group flex flex-col items-center gap-2 p-4 rounded-2xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 hover:border-red-500/50 transition-all duration-300 transform hover:-translate-y-1 w-28">
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-slate-900 group-hover:scale-110 transition-transform">
+                            <img src="https://i.ibb.co.com/tMrZjRZx/yt.png" alt="YouTube" class="w-7 h-7 object-contain"
+                                 onerror="this.src='https://placehold.co/50x50/ff0000/fff?text=YT'">
+                        </div>
+                        <span class="text-xs font-semibold text-slate-200 group-hover:text-red-400">YouTube</span>
+                    </a>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-950 border-t border-slate-800 py-8 px-4 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <img src="https://github.com/virtueterna28/web/blob/main/mentahan%20aset%20web/logo%20veterna%20(1).png?raw=true" alt="Logo" class="h-6 w-auto opacity-70">
+                <span class="text-slate-400 font-medium">&copy; 2026 Angkatan Veterna - SMA Ar-Rohmah Putra Malang</span>
+            </div>
+            <p class="text-slate-500">Modern 3D Interactive Model Web Showcase</p>
+        </div>
+    </footer>
+
+    <!-- MODAL SHARE -->
+    <div id="share-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="glass-panel w-full max-w-md rounded-2xl p-6 border border-slate-700 shadow-2xl transform scale-95 transition-transform duration-300">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-share-nodes text-veterna-accent"></i> Bagikan Model 3D
+                </h3>
+                <button onclick="closeShareModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="text-xs text-slate-400 mb-4">Salin tautan di bawah ini untuk membagikan tampilan 3D Burung Hantu Veterna kepada orang lain.</p>
+            
+            <div class="flex items-center gap-2 bg-slate-900 p-2 rounded-xl border border-slate-800 mb-6">
+                <input id="share-link-input" type="text" readonly value="https://autode.sk/4jjQkQk" class="bg-transparent text-xs text-slate-300 w-full focus:outline-none px-2">
+                <button onclick="copyShareLink()" class="px-3 py-1.5 bg-veterna hover:bg-veterna-light text-white text-xs font-semibold rounded-lg transition">
+                    Salin
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <a id="wa-share-btn" href="#" target="_blank" class="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-green-600/20 hover:bg-green-600/30 border border-green-500/40 text-green-400 text-xs font-medium transition">
+                    <i class="fa-brands fa-whatsapp text-sm"></i> WhatsApp
+                </a>
+                <a id="fb-share-btn" href="#" target="_blank" class="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-400 text-xs font-medium transition">
+                    <i class="fa-brands fa-facebook text-sm"></i> Facebook
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DOWNLOAD -->
+    <div id="download-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="glass-panel w-full max-w-md rounded-2xl p-6 border border-slate-700 shadow-2xl transform scale-95 transition-transform duration-300 text-center">
+            <div class="w-12 h-12 rounded-full bg-veterna/30 text-veterna-accent mx-auto flex items-center justify-center text-xl mb-4">
+                <i class="fa-solid fa-file-arrow-down"></i>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">Unduh Aset 3D Veterna</h3>
+            <p class="text-xs text-slate-400 mb-6">Pilih format berkas yang Anda butuhkan untuk keperluan proyek atau desain Anda.</p>
+            
+            <div class="space-y-3 mb-6 text-left">
+                <button onclick="triggerDownload('Autodesk Link Viewer', 'https://autode.sk/4jjQkQk')" class="w-full p-3 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 flex items-center justify-between group transition">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-link text-veterna-accent"></i>
+                        <div>
+                            <div class="text-xs font-semibold text-white">Akses Autodesk Web Viewer</div>
+                            <div class="text-[10px] text-slate-400">Tautan Resmi Autodesk</div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs text-slate-500 group-hover:text-white transition"></i>
+                </button>
+
+                <button onclick="triggerDownload('Format FBX / OBJ', '#')" class="w-full p-3 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 flex items-center justify-between group transition">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-cube text-yellow-400"></i>
+                        <div>
+                            <div class="text-xs font-semibold text-white">3D Mesh Format (.FBX / .OBJ)</div>
+                            <div class="text-[10px] text-slate-400">Khusus Angkatan Veterna</div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-lock text-xs text-slate-500 group-hover:text-white transition"></i>
+                </button>
+            </div>
+
+            <button onclick="closeDownloadModal()" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold">
+                Batal
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL CONTACT / HUBUNGI KAMI -->
+    <div id="contact-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="glass-panel w-full max-w-lg rounded-2xl p-6 sm:p-8 border border-slate-700 shadow-2xl transform scale-95 transition-transform duration-300">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h3 class="text-xl font-bold text-white">Hubungi Angkatan Veterna</h3>
+                    <p class="text-xs text-slate-400">Kirim pesan atau pertanyaan seputar 3D Model</p>
+                </div>
+                <button onclick="closeContactModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form onsubmit="handleContactSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Lengkap</label>
+                    <input type="text" required placeholder="Masukkan nama Anda" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-veterna-accent">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Email / Kontak</label>
+                    <input type="text" required placeholder="Email atau WhatsApp" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-veterna-accent">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Pesan</label>
+                    <textarea rows="3" required placeholder="Tuliskan pesan Anda..." class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-veterna-accent"></textarea>
+                </div>
+
+                <div class="pt-2 flex gap-3">
+                    <button type="button" onclick="closeContactModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold">
+                        Batal
+                    </button>
+                    <button type="submit" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-veterna to-blue-600 hover:from-blue-600 hover:to-veterna text-white text-xs font-semibold shadow-lg">
+                        Kirim Pesan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL PREVIEW SCREENSHOT -->
+    <div id="screenshot-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="glass-panel w-full max-w-2xl rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col items-center">
+            <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-camera text-yellow-300"></i> Hasil Tangkapan Layar
+            </h3>
+            <p class="text-xs text-slate-400 mb-4">Pratinjau gambar screenshot 3D Burung Hantu Veterna</p>
+            
+            <div class="w-full rounded-xl overflow-hidden bg-slate-950 border border-slate-800 mb-6 flex items-center justify-center max-h-[380px]">
+                <img id="screenshot-img" src="" alt="Screenshot Result" class="max-w-full max-h-[360px] object-contain">
+            </div>
+
+            <div class="flex items-center gap-3 w-full">
+                <button onclick="closeScreenshotModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold">
+                    Tutup
+                </button>
+                <a id="download-screenshot-btn" href="#" download="3D-Burung-Hantu-Veterna.png" class="flex-1 text-center py-2.5 rounded-xl bg-gradient-to-r from-veterna to-blue-600 hover:from-blue-600 hover:to-veterna text-white text-xs font-semibold shadow-lg">
+                    <i class="fa-solid fa-download mr-1"></i> Simpan Gambar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Toast Function
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastMsg.textContent = message;
+
+            if (type === 'success') {
+                toastIcon.className = 'fa-solid fa-circle-check text-green-400 text-xl';
+            } else if (type === 'info') {
+                toastIcon.className = 'fa-solid fa-circle-info text-veterna-accent text-xl';
+            } else {
+                toastIcon.className = 'fa-solid fa-triangle-exclamation text-yellow-400 text-xl';
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Mobile Nav Toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Share Modal Functions
+        function openShareModal() {
+            const modal = document.getElementById('share-modal');
+            const shareUrl = "dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6YTM2MHZpZXdlci1wcm90ZWN0ZWQvdDE3OTE4OTgxMjBfMjA2MWRhMWEtYjBlMC00YjM3LTljNjUtNjhhOTNhNjEwMjczLmZieA";
+            
+            // Set social URLs
+            document.getElementById('wa-share-btn').href = `https://api.whatsapp.com/send?text=${encodeURIComponent('Lihat 3D Model Burung Hantu Veterna: ' + shareUrl)}`;
+            document.getElementById('fb-share-btn').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.querySelector('div').classList.remove('scale-95');
+            modal.querySelector('div').classList.add('scale-100');
+        }
+
+        function closeShareModal() {
+            const modal = document.getElementById('share-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.querySelector('div').classList.remove('scale-100');
+            modal.querySelector('div').classList.add('scale-95');
+        }
+
+        function copyShareLink() {
+            const input = document.getElementById('share-link-input');
+            input.select();
+            document.execCommand('copy');
+            showToast('Tautan berhasil disalin ke papan klip!', 'success');
+            closeShareModal();
+        }
+
+        // Download Modal Functions
+        function openDownloadModal() {
+            const modal = document.getElementById('download-modal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.querySelector('div').classList.remove('scale-95');
+            modal.querySelector('div').classList.add('scale-100');
+        }
+
+        function closeDownloadModal() {
+            const modal = document.getElementById('download-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.querySelector('div').classList.remove('scale-100');
+            modal.querySelector('div').classList.add('scale-95');
+        }
+
+        function triggerDownload(type, url) {
+            closeDownloadModal();
+            if (url !== '#') {
+                window.open(url, '_blank');
+                showToast(`Membuka ${type}...`, 'info');
+            } else {
+                showToast('Akses berkas mentah memerlukan verifikasi Angkatan Veterna.', 'warning');
+            }
+        }
+
+        // Contact Modal Functions
+        function openContactModal() {
+            const modal = document.getElementById('contact-modal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.querySelector('div').classList.remove('scale-95');
+            modal.querySelector('div').classList.add('scale-100');
+        }
+
+        function closeContactModal() {
+            const modal = document.getElementById('contact-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.querySelector('div').classList.remove('scale-100');
+            modal.querySelector('div').classList.add('scale-95');
+        }
+
+        function handleContactSubmit(e) {
+            e.preventDefault();
+            closeContactModal();
+            showToast('Pesan Anda berhasil terkirim ke tim Veterna!', 'success');
+        }
+
+        // Screenshot Feature (using html2canvas on viewer container)
+        function takeScreenshot() {
+            showToast('Mengambil tangkapan layar 3D...', 'info');
+            const captureArea = document.getElementById('capture-container');
+
+            html2canvas(captureArea, {
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#0f172a'
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const screenshotImg = document.getElementById('screenshot-img');
+                const downloadBtn = document.getElementById('download-screenshot-btn');
+
+                screenshotImg.src = imgData;
+                downloadBtn.href = imgData;
+
+                openScreenshotModal();
+            }).catch(err => {
+                showToast('Gagal membuat screenshot. Silakan coba lagi.', 'warning');
+                console.error(err);
+            });
+        }
+
+        function openScreenshotModal() {
+            const modal = document.getElementById('screenshot-modal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.querySelector('div').classList.remove('scale-95');
+            modal.querySelector('div').classList.add('scale-100');
+        }
+
+        function closeScreenshotModal() {
+            const modal = document.getElementById('screenshot-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.querySelector('div').classList.remove('scale-100');
+            modal.querySelector('div').classList.add('scale-95');
+        }
+    </script>
+</body>
+</html>
