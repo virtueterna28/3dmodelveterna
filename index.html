@@ -167,25 +167,28 @@
             
             <!-- Viewer Frame Container -->
             <div class="relative w-full h-[500px] sm:h-[620px] rounded-xl overflow-hidden bg-slate-950 border border-slate-800">
-                <!-- Autodesk blocks this shared viewer from being embedded in some browsers. -->
-                <div class="w-full h-full flex flex-col items-center justify-center text-center px-6 bg-slate-950">
-                    <div class="w-16 h-16 rounded-2xl bg-veterna/30 border border-veterna-accent/30 flex items-center justify-center text-veterna-accent text-2xl mb-5">
-                        <i class="fa-solid fa-cube"></i>
-                    </div>
-                    <h3 class="text-lg sm:text-xl font-bold text-white mb-2">Viewer 3D dibuka melalui Autodesk</h3>
-                    <p class="max-w-md text-sm text-slate-400 mb-6">
-                        Autodesk membatasi tampilan viewer ini di dalam halaman lain. Buka viewer langsung di tab baru untuk berinteraksi dengan model.
-                    </p>
-                    <a href="https://autode.sk/4jjQkQk" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-veterna to-blue-600 hover:from-blue-600 hover:to-veterna text-white text-sm font-semibold shadow-lg transition-all">
-                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                        Buka Viewer Autodesk
-                    </a>
-                </div>
+                <iframe
+                    src="https://autode.sk/4jjQkQk"
+                    title="Viewer 3D Burung Hantu Veterna di Autodesk"
+                    class="w-full h-full border-0 bg-slate-950"
+                    allow="fullscreen; autoplay"
+                    allowfullscreen
+                    loading="lazy">
+                </iframe>
                 
                 <!-- Watermark Badge -->
                 <div class="absolute top-4 left-4 pointer-events-none z-10 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 flex items-center gap-2 text-xs text-slate-300">
                     <img src="https://github.com/virtueterna28/web/blob/main/mentahan%20aset%20web/logo%20veterna%20(1).png?raw=true" alt="Veterna" class="h-4 w-auto">
                     <span>Veterna 3D Engine</span>
+                </div>
+
+                <!-- Fallback jika Autodesk tidak mengizinkan viewer dimuat di iframe -->
+                <div class="absolute bottom-4 left-4 right-4 z-10 flex flex-col sm:flex-row items-center justify-between gap-3 rounded-xl border border-white/10 bg-slate-900/90 px-4 py-3 text-center sm:text-left backdrop-blur-md">
+                    <p class="text-xs text-slate-300">Jika model tidak tampil di sini, buka viewer Autodesk langsung.</p>
+                    <a href="https://autode.sk/4jjQkQk" target="_blank" rel="noopener noreferrer" class="shrink-0 inline-flex items-center gap-2 rounded-lg bg-veterna px-4 py-2 text-xs font-semibold text-white hover:bg-veterna-light transition">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        Buka Viewer
+                    </a>
                 </div>
             </div>
 
@@ -465,15 +468,15 @@
                     <i class="fa-solid fa-chevron-right text-xs text-slate-500 group-hover:text-white transition"></i>
                 </button>
 
-                <button onclick="triggerDownload('Format FBX / OBJ', '#')" class="w-full p-3 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 flex items-center justify-between group transition">
+                <button onclick="triggerDownload('Model 3D di Google Drive', 'https://drive.google.com/file/d/15eldw70Tb0cGg6u9b_6NWSa9TrjiBCJV/view?usp=sharing')" class="w-full p-3 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 flex items-center justify-between group transition">
                     <div class="flex items-center gap-3">
                         <i class="fa-solid fa-cube text-yellow-400"></i>
                         <div>
-                            <div class="text-xs font-semibold text-white">3D Mesh Format (.FBX / .OBJ)</div>
-                            <div class="text-[10px] text-slate-400">comming soon</div>
+                            <div class="text-xs font-semibold text-white">Download Model 3D</div>
+                            <div class="text-[10px] text-slate-400">Buka file di Google Drive</div>
                         </div>
                     </div>
-                    <i class="fa-solid fa-lock text-xs text-slate-500 group-hover:text-white transition"></i>
+                    <i class="fa-solid fa-download text-xs text-slate-500 group-hover:text-white transition"></i>
                 </button>
             </div>
 
